@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="app_title">كليك كاشير | منظومة نقاط البيع والمحاسبة التجارية الذكية</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- 1. Executive Live Ticker Ribbon -->
+    <div class="top-ticker-ribbon">
+        <div class="ticker-label-badge">
+            <i class="fas fa-satellite-dish"></i>
+            <span data-i18n="live_ticker_label">نبض السوق المباشر</span>
+        </div>
+        <div class="ticker-marquee">
+            <span class="ticker-item"><i class="fas fa-chart-line text-cyan"></i> إجمالي مبيعات اليوم: <strong id="tickerRevenue">$0</strong></span>
+            <span class="ticker-item"><i class="fas fa-wallet text-gold"></i> صافي الأرباح المحققة: <strong id="tickerProfit">$0</strong></span>
+            <span class="ticker-item"><i class="fas fa-layer-group text-cyan"></i> هيكل البيانات: <span class="badge badge-primary">Stack LIFO O(1) Active</span></span>
+            <span class="ticker-item"><i class="fas fa-bolt text-gold"></i> خريطة التجزئة للمنتجات: <span class="badge badge-success">Hash Map O(1) In-Memory</span></span>
+            <span class="ticker-item"><i class="fas fa-coins text-cyan"></i> الدولار مقابل الريال: <strong>3.75 SAR</strong></span>
+            <span class="ticker-item"><i class="fas fa-shield-halved text-gold"></i> التدقيق المحاسبي: <strong>مطابق للمعايير الضريبية 100%</strong></span>
+        </div>
+    </div>
+
+    <!-- 2. Main Executive Navbar -->
+    <header class="main-navbar">
+        <div class="brand-wrapper">
+            <div class="brand-logo-icon">
+                <i class="fas fa-cash-register"></i>
+            </div>
+            <div class="brand-text">
+                <h1 class="brand-dynamic-name" data-i18n="brand_name">كليك كاشير</h1>
+                <span class="brand-sub brand-dynamic-tagline">ClickCashier Smart POS & Commerce Engine</span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs-group">
+            <button class="nav-tab active" data-target="viewInventory">
+                <i class="fas fa-boxes-stacked"></i>
+                <span data-i18n="nav_inventory">المخزون والمنتجات</span>
+            </button>
+            <button class="nav-tab" data-target="viewPos">
+                <i class="fas fa-cash-register"></i>
+                <span data-i18n="nav_pos">نقطة البيع (POS)</span>
+            </button>
+            <button class="nav-tab" data-target="viewAccounting">
+                <i class="fas fa-chart-pie"></i>
+                <span data-i18n="nav_accounting">الدفتر المحاسبي</span>
+            </button>
+            <button class="nav-tab" data-target="viewCustomers">
+                <i class="fas fa-users"></i>
+                <span>قاعدة العملاء (CRM)</span>
+            </button>
+            <button class="nav-tab" data-target="viewStack">
+                <i class="fas fa-code-branch"></i>
+                <span data-i18n="nav_stack_inspector">محاكي الـ Stack</span>
+            </button>
+        </nav>
+
+        <!-- Navbar Quick Actions -->
+        <div class="nav-actions">
+            <!-- Store Brand & Settings Button -->
+            <button class="btn btn-secondary btn-sm" id="btnOpenStoreSettings" title="تغيير اسم المتجر وإدارة قاعدة البيانات">
+                <i class="fas fa-gear"></i>
+                <span>هوية المتجر وقاعدة البيانات</span>
+            </button>
+
+            <!-- Global Undo / Pop Button -->
+            <button class="btn btn-secondary btn-sm" id="btnGlobalUndo" title="تراجع عن آخر حركة سعرية أو بيعية (Stack Pop)">
+                <i class="fas fa-rotate-left"></i>
+                <span data-i18n="btn_undo">تراجع (Pop)</span>
+            </button>
+
+            <!-- Global Peek Button -->
+            <button class="btn btn-secondary btn-sm" id="btnGlobalPeek" title="معاينة قمة المكدس (Stack Peek)">
+                <i class="fas fa-eye"></i>
+                <span data-i18n="btn_peek">معاينة (Peek)</span>
+            </button>
+
+            <!-- Add Product Button -->
+            <button class="btn btn-primary btn-sm" id="btnOpenAddProductModal">
+                <i class="fas fa-plus"></i>
+                <span data-i18n="btn_add_product">إضافة منتج جديد</span>
+            </button>
+
+            <!-- Language Switcher Button -->
+            <button class="btn btn-secondary btn-sm" id="langToggleBtn" title="تبديل اللغة / Switch Language">
+                <i class="fas fa-globe"></i> English
+            </button>
+        </div>
+    </header>
+
+    <!-- 3. Executive KPI Metric Cards Section -->
+    <section class="kpi-section">
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon-wrap kpi-icon-cyan">
+                    <i class="fas fa-sack-dollar"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-title" data-i18n="revenue">إجمالي الإيرادات</span>
+                    <div class="kpi-number" id="kpiTotalRevenue">$0.00</div>
+                    <span class="kpi-sub-trend"><i class="fas fa-arrow-trend-up"></i> +14.2% نمو أسبوعي</span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon-wrap kpi-icon-emerald">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-title" data-i18n="profit">صافي الأرباح</span>
+                    <div class="kpi-number text-accent-emerald" id="kpiNetProfit">$0.00</div>
+                    <span class="kpi-sub-trend"><i class="fas fa-percentage"></i> هامش: <strong id="kpiProfitMargin">0%</strong></span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon-wrap kpi-icon-gold">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-title" data-i18n="inventory_value">قيمة المخزون الإجمالي</span>
+                    <div class="kpi-number" id="kpiTotalInventoryValue">$0.00</div>
+                    <span class="kpi-sub-trend text-gold"><i class="fas fa-boxes-stacked"></i> الربح الكامن: <strong id="kpiPotentialProfit">$0</strong></span>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon-wrap kpi-icon-purple">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-title" data-i18n="stack_depth">عمق المكدس (Stack Depth)</span>
+                    <div class="kpi-number text-cyan" id="stackDepthIndicator">0</div>
+                    <span class="kpi-sub-trend"><span class="badge badge-primary" id="stackStatusBadge">فارغ</span> LIFO Buffer</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Main Multi-View Content -->
+    <main class="main-dashboard-content">
+
+        <!-- VIEW 1: Products & Inventory Management -->
+        <section id="viewInventory" class="view-section active">
+            <!-- Toolbar: Search & Filters -->
+            <div class="section-toolbar">
+                <div class="search-input-group">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="inventorySearchInput" data-i18n-placeholder="search_placeholder" placeholder="ابحث باسم المنتج، SKU أو الكود..." />
+                </div>
+
+                <div class="filter-pills-row" id="dynamicCategoryFilters">
+                    <button class="filter-pill active" data-category="all" data-i18n="category_all">كافة الأصناف</button>
+                    <!-- Injected dynamically based on store products -->
+                </div>
+
+                <div class="toolbar-actions">
+                    <select id="inventoryStockFilter" class="form-control" style="width: auto; padding: 6px 12px;">
+                        <option value="all">كافة الحالات</option>
+                        <option value="low">كميات منخفضة ⚠️</option>
+                        <option value="out">نفد المخزون ❌</option>
+                        <option value="in">متوفر بالكامل ✅</option>
+                    </select>
+
+                    <div class="nav-tabs-group" style="padding: 2px;">
+                        <button class="nav-tab active" id="btnViewGrid" title="عرض شبكي">
+                            <i class="fas fa-grip"></i>
+                        </button>
+                        <button class="nav-tab" id="btnViewTable" title="عرض جدولي">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+
+                    <span class="badge badge-primary" id="productsCountBadge">0 منتج</span>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="productsGridContainer" class="products-grid">
+                <!-- Injected dynamically via inventory.js -->
+            </div>
+
+            <!-- Products Table View (Hidden by default) -->
+            <div id="productsTableContainer" class="data-table-wrap" style="display: none;">
+                <!-- Injected dynamically via inventory.js -->
+            </div>
+        </section>
+
+        <!-- VIEW 2: POS Terminal & Cashier -->
+        <section id="viewPos" class="view-section">
+            <div class="pos-layout-grid">
+                <!-- Products Selection for POS -->
+                <div class="stack-column-card">
+                    <div class="stack-panel-header">
+                        <div>
+                            <h3 data-i18n="pos_title">نظام نقاط البيع والكاشير</h3>
+                            <small class="text-muted">اختر المنتجات بنقرة واحدة لإضافتها للفاتورة وتحديث المخزون في O(1)</small>
+                        </div>
+                    </div>
+                    <div id="posProductsQuickGrid" class="products-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                        <!-- Cloned or rendered quick cards -->
+                    </div>
+                </div>
+
+                <!-- Live Cashier Cart & Invoicing -->
+                <div class="pos-cart-panel">
+                    <div class="stack-panel-header">
+                        <div>
+                            <h4>سلة الفاتورة الحالية</h4>
+                            <small class="text-muted">الضرائب والخصومات محسوبة آلياً</small>
+                        </div>
+                        <span class="badge badge-primary" id="posCartCount">0</span>
+                    </div>
+
+                    <!-- Smart Customer Picker & Registration Panel -->
+                    <div class="pos-customer-box" style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 14px; margin-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-user-tag"></i> بيانات العميل بالفاتورة:
+                            </label>
+                            <button type="button" class="btn btn-xs btn-outline" onclick="setQuickWalkInCustomer()" style="font-size: 0.72rem; padding: 2px 8px;">
+                                عميل نقدي سريع
+                            </button>
+                        </div>
+
+                        <!-- Quick Select from DB Dropdown -->
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <select id="posCustomerQuickSelect" class="form-control" onchange="handleSelectCustomerFromPicker(this)" style="padding: 6px 10px; font-size: 0.82rem; background: rgba(15, 23, 42, 0.8);">
+                                <option value="">-- اضغط هنا لاختيار عميل مسجل من قاعدة البيانات --</option>
+                            </select>
+                        </div>
+
+                        <!-- Customer Name and Phone Inputs -->
+                        <div class="form-grid-2" style="gap: 10px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.75rem; color: var(--text-muted);">اسم العميل:</label>
+                                <input type="text" id="posCustomerName" list="registeredCustomersDatalist" class="form-control" 
+                                       placeholder="اسم العميل (أو اكتب للبحث)..." 
+                                       oninput="checkIfCustomerRegistered(this.value)" style="padding: 8px 10px; font-size: 0.85rem;" />
+                                <datalist id="registeredCustomersDatalist"></datalist>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.75rem; color: var(--text-muted);">رقم الجوال / الهاتف:</label>
+                                <input type="tel" id="posCustomerPhone" class="form-control" 
+                                       placeholder="05XXXXXXXX" style="padding: 8px 10px; font-size: 0.85rem;" />
+                            </div>
+                        </div>
+
+                        <div id="posCustomerBadge" style="display: none; margin-top: 8px; font-size: 0.75rem; align-items: center; gap: 6px;" class="text-accent-emerald">
+                            <i class="fas fa-check-circle"></i> <span id="posCustomerBadgeText">عميل مسجل في قاعدة البيانات</span>
+                        </div>
+                    </div>
+
+                    <!-- Cart items list -->
+                    <div id="posCartItemsList" class="pos-cart-items-list">
+                        <!-- Injected via pos.js -->
+                    </div>
+
+                    <!-- Cart Summary Calculations -->
+                    <div class="cart-summary-calculations">
+                        <div class="calc-row">
+                            <span data-i18n="subtotal">المجموع الفرعي:</span>
+                            <strong id="posCartSubtotal">$0.00</strong>
+                        </div>
+                        <div class="calc-row">
+                            <span data-i18n="discount">الخصم المطبق:</span>
+                            <span id="posCartDiscount">-$0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span data-i18n="tax_vat">ضريبة القيمة المضافة (15%):</span>
+                            <span id="posCartTax">$0.00</span>
+                        </div>
+                        <div class="calc-row total-row">
+                            <span data-i18n="grand_total">الإجمالي النهائي:</span>
+                            <strong class="text-cyan" id="posCartGrandTotal">$0.00</strong>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg" id="posCheckoutBtn" style="width: 100%; justify-content: center;" disabled>
+                        <i class="fas fa-check-circle"></i>
+                        <span data-i18n="btn_checkout">إتمام البيع وإصدار الفاتورة</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: Accounting Ledger & Financials -->
+        <section id="viewAccounting" class="view-section">
+
+            <!-- Executive Daily Financial Summary Card & Table -->
+            <div class="daily-closing-card" style="margin-bottom: 24px;">
+                <div class="stack-panel-header" style="padding-bottom: 16px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="badge badge-success" style="font-size: 0.8rem;"><i class="fas fa-calendar-day"></i> تقرير اليومية المباشر</span>
+                            <h3 style="margin: 0;">جدول الحسابات اليومية: إدخال اليوم ورأس المال والأرباح</h3>
+                        </div>
+                        <small class="text-muted">ملخص فوري يبين التدفق المالي اليومي ونسبة رأس المال المسترد وصافي الربح المحقق</small>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="window.print()" title="طباعة تقرير اليومية">
+                        <i class="fas fa-print"></i> طباعة كشف اليوم
+                    </button>
+                </div>
+
+                <!-- Split Visual Ratio Bar -->
+                <div class="capital-profit-ratio-wrap" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px;">
+                        <span><i class="fas fa-coins text-gold"></i> نسبة رأس المال: <strong id="ratioCapitalPercent" class="text-gold">0%</strong></span>
+                        <span><i class="fas fa-arrow-trend-up text-accent-emerald"></i> نسبة صافي الأرباح: <strong id="ratioProfitPercent" class="text-accent-emerald">0%</strong></span>
+                    </div>
+                    <div class="ratio-progress-bar">
+                        <div id="ratioCapitalBar" class="ratio-fill-capital" style="width: 50%;"></div>
+                        <div id="ratioProfitBar" class="ratio-fill-profit" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- The Simple Accounting Summary Table -->
+                <div class="data-table-wrap">
+                    <table class="data-table summary-financial-table">
+                        <thead>
+                            <tr style="background: rgba(0, 242, 254, 0.08);">
+                                <th>البند المالي (المحاسبة اليومية)</th>
+                                <th>المبلغ بالدولار ($)</th>
+                                <th>النسبة من إجمالي الدخل (%)</th>
+                                <th>الحالة والتفاصيل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="icon-circle bg-cyan"><i class="fas fa-sack-dollar"></i></span>
+                                        <div>
+                                            <strong>إدخال اليوم الإجمالي (Total Revenue)</strong>
+                                            <small class="text-muted block">مجموع المبيعات النقدية لليوم</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong class="text-cyan" style="font-size: 1.15rem;" id="dailyTableRevenue">$0.00</strong></td>
+                                <td><span class="badge badge-primary">100%</span></td>
+                                <td><span class="badge badge-outline">مكتمل ومحصل</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="icon-circle bg-gold"><i class="fas fa-coins"></i></span>
+                                        <div>
+                                            <strong>رأس المال وتكلفة البضاعة (COGS / Capital)</strong>
+                                            <small class="text-muted block">التكلفة الأصلية للمنتجات التي تم بيعها اليوم</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong class="text-gold" style="font-size: 1.15rem;" id="dailyTableCapital">$0.00</strong></td>
+                                <td><span class="badge badge-warning" id="dailyTableCapitalPercent">0%</span></td>
+                                <td><span class="badge badge-outline">رأس مال مسترجع للخزينة</span></td>
+                            </tr>
+                            <tr style="background: rgba(56, 239, 125, 0.04);">
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="icon-circle bg-emerald"><i class="fas fa-chart-line"></i></span>
+                                        <div>
+                                            <strong>صافي أرباح اليوم (Net Profit)</strong>
+                                            <small class="text-muted block">الربح الحقيقي بعد خصم تكاليف الشراء</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong class="text-accent-emerald" style="font-size: 1.25rem;" id="dailyTableNetProfit">$0.00</strong></td>
+                                <td><span class="badge badge-success" id="dailyTableProfitPercent" style="font-size: 0.85rem;">0%</span></td>
+                                <td><strong class="text-accent-emerald"><i class="fas fa-circle-check"></i> أرباح صافية</strong></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="icon-circle bg-purple"><i class="fas fa-receipt"></i></span>
+                                        <div>
+                                            <strong>ضريبة القيمة المضافة المحصلة (VAT 15%)</strong>
+                                            <small class="text-muted block">ضرائب مستحقة تضاف للإجمالي</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong class="text-muted" id="dailyTableVat">$0.00</strong></td>
+                                <td><span class="badge badge-outline">15%</span></td>
+                                <td><span class="badge badge-outline">أمانات ضريبية</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="icon-circle bg-blue"><i class="fas fa-basket-shopping"></i></span>
+                                        <div>
+                                            <strong>حركة العمليات والفواتير لليوم</strong>
+                                            <small class="text-muted block">عدد فواتير البيع وعدد المنتجات المباعة</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong id="dailyTableInvoicesCount">0 فواتير</strong></td>
+                                <td><strong id="dailyTableItemsSold">0 قطعة مباعة</strong></td>
+                                <td><span class="badge badge-primary">حركة نشطة</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="chart-container-box">
+                <canvas id="financialOverviewChart"></canvas>
+            </div>
+
+            <div class="data-table-wrap">
+                <div class="stack-panel-header" style="padding: 16px 20px;">
+                    <div>
+                        <h3>دفتر الحركات والمبيعات التفصيلي</h3>
+                        <small class="text-muted">توثيق كامل لكافة الفواتير والأرباح المحققة مع إمكانية إعادة الطباعة</small>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>رقم الفاتورة</th>
+                            <th>الوقت</th>
+                            <th>العميل</th>
+                            <th>عدد الأصناف</th>
+                            <th>الإجمالي</th>
+                            <th>صافي الربح</th>
+                            <th>الفاتورة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountingTransactionsTable">
+                        <!-- Populated by pos.js -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- VIEW 3.5: Customers Database & CRM -->
+        <section id="viewCustomers" class="view-section">
+            <div class="stack-column-card" style="margin-bottom: 24px;">
+                <div class="stack-panel-header" style="flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="badge badge-primary" style="font-size: 0.8rem;"><i class="fas fa-database"></i> قاعدة بيانات العملاء (CRM)</span>
+                            <h3 style="margin: 0;">سجل العملاء وحركات المشتريات التراكمية</h3>
+                        </div>
+                        <small class="text-muted">يتم تسجيل وتحديث رصيد ومشتريات العملاء آلياً عند كل فاتورة بيع جديدة</small>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-sm" id="btnOpenAddCustomerModal">
+                            <i class="fas fa-user-plus"></i> إضافة عميل جديد
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="window.appDB.exportBackupJSON()" title="تحميل ملف نسخة احتياطية لكامل المتجر">
+                            <i class="fas fa-file-export text-cyan"></i> تصدير نسخة احتياطية (JSON)
+                        </button>
+                        <label class="btn btn-secondary btn-sm" style="cursor: pointer; margin: 0;" title="استعادة نسخة احتياطية سابقة">
+                            <i class="fas fa-file-import text-gold"></i> استيراد نسخة
+                            <input type="file" id="dbImportFileInput" accept=".json" style="display: none;" onchange="if(this.files[0]) window.appDB.importBackupJSON(this.files[0])" />
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Customers Search Toolbar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div class="search-input-group" style="max-width: 380px;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="customersSearchInput" placeholder="بحث باسم العميل، الهاتف أو الكود..." oninput="filterCustomersTable(this.value)" />
+                    </div>
+                    <span class="badge badge-success" id="customersCountBadge">0 عميل مسجل</span>
+                </div>
+
+                <!-- Customers Table -->
+                <div class="data-table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr style="background: rgba(0, 242, 254, 0.08);">
+                                <th>اسم العميل / المؤسسة</th>
+                                <th>كود العميل</th>
+                                <th>رقم الهاتف</th>
+                                <th>عدد الفواتير</th>
+                                <th>إجمالي المشتريات ($)</th>
+                                <th>تاريخ آخر عملية</th>
+                                <th>الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersListTable">
+                            <!-- Populated by database.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: Stack Visualizer & Data Structure Inspector -->
+        <section id="viewStack" class="view-section">
+            <div class="stack-inspector-grid">
+                <!-- Left: Visual 3D Glass Stack -->
+                <div class="stack-column-card">
+                    <div class="stack-panel-header">
+                        <div>
+                            <h3 data-i18n="stack_inspector_title">محاكي ومفتش هيكل البيانات (Stack Inspector)</h3>
+                            <small class="text-muted" data-i18n="stack_inspector_sub">تنفيذ خوارزميات LIFO (Push / Pop / Peek) بزمن O(1) وربطها بعمليات المتجر الفعلية</small>
+                        </div>
+                        <span class="badge badge-success" id="stackCapacityIndicator">0 / 25</span>
+                    </div>
+
+                    <div class="stack-controls-bar">
+                        <button class="btn btn-primary btn-sm" id="btnInspectPushDemo">
+                            <i class="fas fa-arrow-down"></i>
+                            <span data-i18n="btn_manual_push">دفع عنصر تجريبي (Push)</span>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="btnInspectPop">
+                            <i class="fas fa-arrow-up"></i>
+                            <span data-i18n="btn_pop_undo">سحب وتراجع (Pop)</span>
+                        </button>
+                        <button class="btn btn-accent btn-sm" id="btnInspectPeek">
+                            <i class="fas fa-eye"></i>
+                            <span data-i18n="btn_peek_inspect">فحص القمة (Peek)</span>
+                        </button>
+                        <button class="btn btn-danger-outline btn-sm" id="btnInspectClear">
+                            <i class="fas fa-trash-can"></i>
+                            <span data-i18n="btn_clear_stack">تفريغ المكدس</span>
+                        </button>
+                    </div>
+
+                    <div id="stackVisualContainer" class="stack-visual-container">
+                        <!-- Rendered by stack-visualizer.js -->
+                    </div>
+                </div>
+
+                <!-- Right: Code Execution Panel & Real-time Console Log -->
+                <div class="stack-column-card">
+                    <div class="stack-panel-header">
+                        <div>
+                            <h4>الكود البرمجي المنفذ لحظياً (Algorithm Tracker)</h4>
+                            <small class="text-muted">التعقيد الزمني لكل عملية: <code>O(1) Constant Time</code></small>
+                        </div>
+                        <span class="badge badge-outline">JavaScript ES6</span>
+                    </div>
+
+                    <div class="code-inspector-box">
+                        <pre><code id="stackCodeBlock">// Stack Engine Initialized
+// Ready for Push, Pop, Peek execution</code></pre>
+                    </div>
+
+                    <div class="stack-panel-header" style="margin-top: 10px; margin-bottom: 12px;">
+                        <div>
+                            <h4>سجل العمليات والنداءات (Terminal Stream)</h4>
+                        </div>
+                        <span class="badge badge-primary">Live Logs</span>
+                    </div>
+
+                    <div id="stackTerminalLog" class="terminal-log-box">
+                        <!-- Entries added in real-time -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================================================
+       MODALS
+       ========================================================================== -->
+
+    <!-- Modal 1: Add New Product -->
+    <div class="modal-overlay" id="addProductModal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3 data-i18n="modal_add_title">إضافة منتج تجاري جديد</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <form id="formAddProduct">
+                <div class="modal-body">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>اسم المنتج (بالعربية):</label>
+                            <input type="text" id="newProdNameAr" class="form-control" required placeholder="مثال: لابتوب ديل XPS 15" />
+                        </div>
+                        <div class="form-group">
+                            <label>Product Name (English):</label>
+                            <input type="text" id="newProdNameEn" class="form-control" required placeholder="e.g. Dell XPS 15 OLED" />
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>الفئة أو النشاط التجاري:</label>
+                            <select id="newProdCategory" class="form-control" onchange="toggleCustomCategoryField(this.value)">
+                                <option value="أغذية وسوبرماركت">مواد غذائية وسوبرماركت (Groceries)</option>
+                                <option value="أزياء وملابس">ملابس وأزياء وأحذية (Fashion & Apparel)</option>
+                                <option value="عطور ومستحضرات">عطور وتجميل وعناية (Perfumes & Cosmetics)</option>
+                                <option value="أثاث وديكور">أثاث وديكور منزلي (Furniture & Decor)</option>
+                                <option value="إلكترونيات وتقنية">أجهزة وتقنية (Electronics & Tech)</option>
+                                <option value="أدوات ومعدات">أدوات ومعدات صناعية (Hardware & Tools)</option>
+                                <option value="قرطاسية وهدايا">قرطاسية وهدايا وكتب (Stationery & Gifts)</option>
+                                <option value="صحة ورياضة">صحة ومستلزمات رياضية (Health & Sports)</option>
+                                <option value="custom">★ كتابة فئة مخصصة جديدة (Custom Category)...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="customCategoryGroup" style="display: none;">
+                            <label>اسم الفئة المخصصة:</label>
+                            <input type="text" id="newProdCustomCategory" class="form-control" placeholder="اكتب اسم الفئة هنا (مثال: قطع غيار، مجوهرات...)" />
+                        </div>
+                        <div class="form-group" id="skuGroup">
+                            <label>رمز الباركود / SKU:</label>
+                            <input type="text" id="newProdSku" class="form-control" placeholder="BARCODE-9921" />
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>سعر التكلفة الشراء ($):</label>
+                            <input type="number" id="newProdCost" class="form-control" required min="1" step="0.01" placeholder="1200" />
+                        </div>
+                        <div class="form-group">
+                            <label>سعر البيع المقترح ($):</label>
+                            <input type="number" id="newProdPrice" class="form-control" required min="1" step="0.01" placeholder="1599" />
+                        </div>
+                    </div>
+
+                    <!-- Real-time Margin & Profit preview -->
+                    <div class="financial-metrics" style="margin-bottom: 16px;">
+                        <div class="metric-box">
+                            <span class="metric-label">هامش الربح المتوقع:</span>
+                            <span class="metric-value margin-profit" id="calcMarginDisplay">0%</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">صافي ربح القطعة:</span>
+                            <span class="metric-value text-accent-cyan" id="calcProfitDisplay">$0.00</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">سرعة التخزين:</span>
+                            <span class="metric-value text-gold">O(1) Hash Map</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>الكمية المتوفرة بالمخزن:</label>
+                            <input type="number" id="newProdStock" class="form-control" required min="0" placeholder="15" />
+                        </div>
+                        <div class="form-group">
+                            <label>رابط صورة المنتج (اختياري):</label>
+                            <input type="url" id="newProdImage" class="form-control" placeholder="https://images.unsplash.com/..." />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-backdrop-close" data-i18n="btn_cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn_save">حفظ وإضافة للمكدس والمخزن</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Edit Price O(1) -->
+    <div class="modal-overlay" id="editPriceModal">
+        <div class="modal-window" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 data-i18n="modal_edit_price_title">تعديل سعر المنتج O(1)</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <form id="formEditPrice">
+                <div class="modal-body">
+                    <input type="hidden" id="editPriceTargetId" />
+                    <p style="margin-bottom: 12px;">المنتج: <strong id="editPriceProdName" class="text-cyan"></strong></p>
+                    <p style="margin-bottom: 16px;">السعر الحالي: <strong id="editPriceCurrent"></strong></p>
+
+                    <div class="form-group">
+                        <label>السعر الجديد ($):</label>
+                        <input type="number" id="editPriceNewInput" class="form-control" required step="0.01" min="1" />
+                    </div>
+                    <small class="text-muted"><i class="fas fa-info-circle"></i> يتم تعديل السعر في خريطة التجزئة في O(1) وتوثيق التغيير في الـ Stack لتمكين التراجع الفوري.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-backdrop-close" data-i18n="btn_cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn_save">تحديث السعر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: Edit Stock -->
+    <div class="modal-overlay" id="editStockModal">
+        <div class="modal-window" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 data-i18n="modal_edit_stock_title">تعديل كمية المخزون</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <form id="formEditStock">
+                <div class="modal-body">
+                    <input type="hidden" id="editStockTargetId" />
+                    <p style="margin-bottom: 12px;">المنتج: <strong id="editStockProdName" class="text-cyan"></strong></p>
+                    <p style="margin-bottom: 16px;">الكمية الحالية: <strong id="editStockCurrent"></strong></p>
+
+                    <div class="form-group">
+                        <label>الكمية المضافة (استخدم قيمة سالبة للخصم):</label>
+                        <input type="number" id="editStockDeltaInput" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-backdrop-close" data-i18n="btn_cancel">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn_save">تحديث المخزون</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 4: Stack Item Inspector (Peek / Details) -->
+    <div class="modal-overlay" id="stackDetailModal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>مفتش بيانات المكدس (Stack Inspector Peek)</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="stackDetailModalContent">
+                <!-- Injected dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-backdrop-close">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 5: Printable Commercial Invoice Receipt -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal-window" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3>فاتورة مبيعات معتمدة</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="receiptModalContent" style="background: #f8fafc;">
+                <!-- Printable receipt injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-backdrop-close">إغلاق</button>
+                <button type="button" class="btn btn-primary" id="btnPrintReceipt">
+                    <i class="fas fa-print"></i> طباعة الفاتورة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 6: Add New Customer -->
+    <div class="modal-overlay" id="addCustomerModal">
+        <div class="modal-window" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus text-cyan"></i> تسجيل عميل جديد في قاعدة البيانات</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <form id="formAddCustomer">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>اسم العميل / المؤسسة:</label>
+                        <input type="text" id="newCustName" class="form-control" required placeholder="مثال: مؤسسة البشائر للتجارة" />
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>رقم الهاتف:</label>
+                            <input type="tel" id="newCustPhone" class="form-control" placeholder="05XXXXXXXX" />
+                        </div>
+                        <div class="form-group">
+                            <label>البريد الإلكتروني:</label>
+                            <input type="email" id="newCustEmail" class="form-control" placeholder="client@example.com" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ملاحظات أو تصنيف العميل:</label>
+                        <textarea id="newCustNotes" class="form-control" rows="2" placeholder="عميل VIP، تسهيلات سداد، عميل قطاعي..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-backdrop-close">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ العميل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 7: Store Settings & Brand Name Selector -->
+    <div class="modal-overlay" id="storeSettingsModal">
+        <div class="modal-window" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-sliders text-gold"></i> هوية واسم المتجر وقاعدة البيانات</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <form id="formStoreSettings">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>اسم المتجر الحالي:</label>
+                        <input type="text" id="settingStoreName" class="form-control" required style="font-size: 1.1rem; font-weight: 700; color: var(--accent-cyan);" />
+                    </div>
+
+                    <!-- One-Click Brand Name Suggestions -->
+                    <div class="form-group">
+                        <label style="color: var(--accent-gold);"><i class="fas fa-wand-magic-sparkles"></i> اختر اسماً احترافياً مقترحاً بنقرة واحدة:</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                            <button type="button" class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;" onclick="applySuggestedName('أوبكس ريتيل | Opex Retail')">أوبكس ريتيل (Opex Retail)</button>
+                            <button type="button" class="badge badge-success" style="cursor: pointer; padding: 6px 12px;" onclick="applySuggestedName('رصيد برو | Raseed Pro')">رصيد برو (Raseed Pro)</button>
+                            <button type="button" class="badge badge-warning" style="cursor: pointer; padding: 6px 12px;" onclick="applySuggestedName('مدار كوميرس | Madar')">مدار كوميرس (Madar)</button>
+                            <button type="button" class="badge badge-outline" style="cursor: pointer; padding: 6px 12px;" onclick="applySuggestedName('تاجر بلس | Tajer Plus')">تاجر بلس (Tajer Plus)</button>
+                            <button type="button" class="badge badge-primary" style="cursor: pointer; padding: 6px 12px;" onclick="applySuggestedName('فيكتور بوينت | Vector POS')">فيكتور بوينت (Vector POS)</button>
+                            <button type="button" class="badge badge-danger" style="cursor: pointer; padding: 6px 12px;" onclick="applySuggestedName('النخبة التجارية | Elite Trade')">النخبة التجارية (Elite Trade)</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الوصف أو الشعار (Slogan):</label>
+                        <input type="text" id="settingTagline" class="form-control" value="منظومة الإدارة والمحاسبة التجارية الذكية" />
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>الرقم الضريبي للمتجر:</label>
+                            <input type="text" id="settingTaxNumber" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>رقم هاتف المتجر:</label>
+                            <input type="text" id="settingPhone" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>عنوان المتجر / المدينة:</label>
+                        <input type="text" id="settingAddress" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-backdrop-close">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ واعتماد التغييرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Application Scripts -->
+    <script src="js/data-structures.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/stack-visualizer.js"></script>
+    <script src="js/inventory.js"></script>
+    <script src="js/pos.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
