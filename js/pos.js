@@ -372,6 +372,12 @@ class POSManager {
         if (salesCountEl) salesCountEl.textContent = this.transactions.length;
         if (marginEl) marginEl.textContent = `${profitPercent}%`;
 
+        // Update mobile KPI preview pills
+        const mobileRevEl = document.getElementById('kpiMobileRev');
+        const mobileProfitEl = document.getElementById('kpiMobileProfit');
+        if (mobileRevEl) mobileRevEl.textContent = `$${totalRevenue.toFixed(0)}`;
+        if (mobileProfitEl) mobileProfitEl.textContent = `$${totalNetProfit.toFixed(0)}`;
+
         // Update live ticker
         const tickerRevenue = document.getElementById('tickerRevenue');
         const tickerProfit = document.getElementById('tickerProfit');

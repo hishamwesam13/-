@@ -73,7 +73,7 @@
             </button>
         </nav>
 
-        <!-- Navbar Quick Actions -->
+        <!-- Navbar Quick Actions (Desktop & Tablet) -->
         <div class="nav-actions">
             <!-- Store Brand & Settings Button -->
             <button class="btn btn-secondary btn-sm" id="btnOpenStoreSettings" title="تغيير اسم المتجر وإدارة قاعدة البيانات">
@@ -94,7 +94,7 @@
             </button>
 
             <!-- Add Product Button -->
-            <button class="btn btn-primary btn-sm" id="btnOpenAddProductModal">
+            <button class="btn btn-primary btn-sm btn-trigger-add-product" id="btnOpenAddProductModal">
                 <i class="fas fa-plus"></i>
                 <span data-i18n="btn_add_product">إضافة منتج جديد</span>
             </button>
@@ -104,11 +104,83 @@
                 <i class="fas fa-globe"></i> English
             </button>
         </div>
+
+        <!-- Mobile Controls (Quick Add + Hamburger Menu) -->
+        <div class="mobile-header-controls">
+            <button class="btn btn-primary btn-sm mobile-quick-add-btn btn-trigger-add-product" id="btnMobileQuickAdd" title="إضافة منتج جديد">
+                <i class="fas fa-plus"></i>
+                <span>إضافة</span>
+            </button>
+            <button class="btn btn-secondary btn-sm mobile-menu-toggle-btn" id="btnMobileMenuToggle" aria-label="القائمة والإعدادات" title="القائمة">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
     </header>
 
+    <!-- Mobile Slide-out Drawer / Menu -->
+    <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+    <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
+        <div class="drawer-header">
+            <div class="brand-wrapper">
+                <div class="brand-logo-icon">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+                <div class="brand-text">
+                    <h3 class="brand-dynamic-name" data-i18n="brand_name">كليك كاشير</h3>
+                    <span class="brand-sub">إدارة المتجر والإعدادات</span>
+                </div>
+            </div>
+            <button class="drawer-close-btn" id="btnMobileDrawerClose" aria-label="إغلاق القائمة">&times;</button>
+        </div>
+
+        <div class="drawer-body">
+            <div class="drawer-section-label">إجراءات سريعة</div>
+            <button class="drawer-action-btn drawer-btn-highlight btn-trigger-add-product" id="btnDrawerAddProduct">
+                <i class="fas fa-plus-circle text-cyan"></i>
+                <span>إضافة منتج تجاري جديد</span>
+            </button>
+            <button class="drawer-action-btn" id="btnDrawerStoreSettings">
+                <i class="fas fa-sliders text-gold"></i>
+                <span>هوية المتجر وقاعدة البيانات</span>
+            </button>
+
+            <div class="drawer-section-label">عمليات المكدس (LIFO Stack)</div>
+            <button class="drawer-action-btn" id="btnDrawerUndo">
+                <i class="fas fa-rotate-left text-cyan"></i>
+                <span data-i18n="btn_undo">تراجع عن آخر حركة (Pop)</span>
+            </button>
+            <button class="drawer-action-btn" id="btnDrawerPeek">
+                <i class="fas fa-eye text-cyan"></i>
+                <span data-i18n="btn_peek">معاينة قمة المكدس (Peek)</span>
+            </button>
+
+            <div class="drawer-section-label">تفضيلات النظام وقاعدة البيانات</div>
+            <button class="drawer-action-btn" id="btnDrawerLang">
+                <i class="fas fa-globe text-emerald"></i>
+                <span id="drawerLangLabel">English (تبديل اللغة)</span>
+            </button>
+            <button class="drawer-action-btn" onclick="window.appDB.exportBackupJSON()">
+                <i class="fas fa-file-export text-cyan"></i>
+                <span>تصدير نسخة احتياطية (JSON)</span>
+            </button>
+        </div>
+    </aside>
+
     <!-- 3. Executive KPI Metric Cards Section -->
-    <section class="kpi-section">
-        <div class="kpi-grid">
+    <section class="kpi-section collapsed" id="kpiSection">
+        <!-- Mobile Sleek KPI Bar (Prevents blocking the screen) -->
+        <div class="kpi-mobile-bar" id="kpiMobileBar">
+            <div class="kpi-mobile-preview">
+                <span class="kpi-pill"><i class="fas fa-sack-dollar text-cyan"></i> <span id="kpiMobileRev">$0.00</span></span>
+                <span class="kpi-pill"><i class="fas fa-chart-line text-emerald"></i> <span id="kpiMobileProfit">$0.00</span></span>
+            </div>
+            <button type="button" class="btn-kpi-toggle" id="btnToggleKpi" title="إظهار أو طي المؤشرات المالية">
+                <span id="kpiToggleLabel">عرض المؤشرات</span>
+                <i class="fas fa-chevron-down" id="kpiToggleIcon"></i>
+            </button>
+        </div>
+
+        <div class="kpi-grid" id="kpiGrid">
             <div class="kpi-card">
                 <div class="kpi-icon-wrap kpi-icon-cyan">
                     <i class="fas fa-sack-dollar"></i>
@@ -848,6 +920,12 @@
             </form>
         </div>
     </div>
+
+    <!-- Mobile Floating Quick-Add Product Button (FAB) -->
+    <button class="mobile-fab-add btn-trigger-add-product" id="mobileFabAddBtn" title="إضافة منتج جديد">
+        <i class="fas fa-plus"></i>
+        <span class="fab-text">إضافة منتج</span>
+    </button>
 
     <!-- Floating Toast Notifications Container -->
     <div id="toastContainer" class="toast-container"></div>

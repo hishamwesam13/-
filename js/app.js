@@ -159,6 +159,10 @@ class I18nManager {
         if (langBtn) {
             langBtn.innerHTML = lang === 'ar' ? '<i class="fas fa-globe"></i> English' : '<i class="fas fa-globe"></i> العربية';
         }
+        const drawerLangLabel = document.getElementById('drawerLangLabel');
+        if (drawerLangLabel) {
+            drawerLangLabel.textContent = lang === 'ar' ? 'English (تبديل اللغة)' : 'العربية (Switch Language)';
+        }
     }
 
     toggle() {
@@ -329,13 +333,107 @@ function setupEventListeners() {
         });
     }
 
-    // Add Product Modal Trigger
-    const btnOpenAddModal = document.getElementById('btnOpenAddProductModal');
+    // Add Product Modal Triggers (Desktop button, Mobile Header, FAB, and Drawer)
     const addProductModal = document.getElementById('addProductModal');
-    if (btnOpenAddModal && addProductModal) {
-        btnOpenAddModal.addEventListener('click', () => {
-            addProductModal.classList.add('active');
+    const addProductTriggers = document.querySelectorAll('.btn-trigger-add-product, #btnOpenAddProductModal');
+    if (addProductModal && addProductTriggers.length > 0) {
+        addProductTriggers.forEach(btn => {
+            btn.addEventListener('click', () => {
+                closeDrawer();
+                addProductModal.classList.add('active');
+            });
         });
+    }
+
+    // Mobile Drawer Setup
+    const drawer = document.getElementById('mobileNavDrawer');
+    const drawerOverlay = document.getElementById('mobileDrawerOverlay');
+    const btnToggleDrawer = document.getElementById('btnMobileMenuToggle');
+    const btnCloseDrawer = document.getElementById('btnMobileDrawerClose');
+
+    function openDrawer() {
+        if (drawer) drawer.classList.add('active');
+        if (drawerOverlay) drawerOverlay.classList.add('active');
+    }
+
+    function closeDrawer() {
+        if (drawer) drawer.classList.remove('active');
+        if (drawerOverlay) drawerOverlay.classList.remove('active');
+    }
+
+    if (btnToggleDrawer) btnToggleDrawer.addEventListener('click', openDrawer);
+    if (btnCloseDrawer) btnCloseDrawer.addEventListener('click', closeDrawer);
+    if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+
+    // Mobile Drawer Actions
+    const btnDrawerSettings = document.getElementById('btnDrawerStoreSettings');
+    const storeSettingsModal = document.getElementById('storeSettingsModal');
+    if (btnDrawerSettings && storeSettingsModal) {
+        btnDrawerSettings.addEventListener('click', () => {
+            closeDrawer();
+            if (window.appDB) window.appDB.applySettingsToDOM();
+            storeSettingsModal.classList.add('active');
+        });
+    }
+
+    const btnDrawerUndo = document.getElementById('btnDrawerUndo');
+    if (btnDrawerUndo) {
+        btnDrawerUndo.addEventListener('click', () => {
+            closeDrawer();
+            if (window.appActionStack.isEmpty()) {
+                showToast('المكدس فارغ، لا توجد حركات للتراجع عنها!', 'info');
+                return;
+            }
+            window.appInventory.undoLastAction();
+        });
+    }
+
+    const btnDrawerPeek = document.getElementById('btnDrawerPeek');
+    if (btnDrawerPeek) {
+        btnDrawerPeek.addEventListener('click', () => {
+            closeDrawer();
+            if (window.appActionStack.isEmpty()) {
+                showToast('المكدس فارغ، لا يوجد عنصر للمعاينة!', 'info');
+                return;
+            }
+            window.appActionStack.peek();
+        });
+    }
+
+    const btnDrawerLang = document.getElementById('btnDrawerLang');
+    if (btnDrawerLang) {
+        btnDrawerLang.addEventListener('click', () => {
+            closeDrawer();
+            window.i18n.toggle();
+        });
+    }
+
+    // KPI Section Collapse / Expand for Mobile
+    const kpiSection = document.getElementById('kpiSection');
+    const btnToggleKpi = document.getElementById('btnToggleKpi');
+    const kpiMobileBar = document.getElementById('kpiMobileBar');
+    const kpiToggleLabel = document.getElementById('kpiToggleLabel');
+    const kpiToggleIcon = document.getElementById('kpiToggleIcon');
+
+    function toggleKpi() {
+        if (!kpiSection) return;
+        const isNowCollapsed = kpiSection.classList.toggle('collapsed');
+        if (kpiToggleLabel) {
+            kpiToggleLabel.textContent = isNowCollapsed ? 'عرض المؤشرات' : 'طي المؤشرات';
+        }
+        if (kpiToggleIcon) {
+            kpiToggleIcon.className = isNowCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+        }
+    }
+
+    if (btnToggleKpi) {
+        btnToggleKpi.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleKpi();
+        });
+    }
+    if (kpiMobileBar) {
+        kpiMobileBar.addEventListener('click', toggleKpi);
     }
 
     // Add Customer Modal Trigger
@@ -349,7 +447,6 @@ function setupEventListeners() {
 
     // Store Settings Modal Trigger
     const btnOpenSettings = document.getElementById('btnOpenStoreSettings');
-    const storeSettingsModal = document.getElementById('storeSettingsModal');
     if (btnOpenSettings && storeSettingsModal) {
         btnOpenSettings.addEventListener('click', () => {
             if (window.appDB) window.appDB.applySettingsToDOM();
